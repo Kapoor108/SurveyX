@@ -35,39 +35,75 @@ const calculateResponseScores = (response) => {
   let futureCreativityTotal = 0;
   let futureMoralityTotal = 0;
   
+  // Ensure response has required data
+  if (!response || !response.answers || !response.surveyId || !response.surveyId.questions) {
+    console.error('Invalid response data:', response);
+    return {
+      present: {
+        creativity_total: 0,
+        morality_total: 0,
+        creativity_percentage: 0,
+        morality_percentage: 0,
+        creativity_band: 'Early',
+        morality_band: 'Early',
+        quadrant: 'Extraction Engine'
+      },
+      future: {
+        creativity_total: 0,
+        morality_total: 0,
+        creativity_percentage: 0,
+        morality_percentage: 0,
+        creativity_band: 'Early',
+        morality_band: 'Early',
+        quadrant: 'Extraction Engine'
+      },
+      maxScore: 0
+    };
+  }
+  
   response.answers.forEach(answer => {
     const question = response.surveyId.questions.find(q => q._id.toString() === answer.questionId.toString());
     if (!question) return;
 
     // Present Aspect
-    if (answer.presentCreativityOptionIndex !== undefined) {
-      const option = question.presentCreativityOptions[answer.presentCreativityOptionIndex];
+    if (answer.presentCreativityOptionIndex !== undefined && answer.presentCreativityOptionIndex !== null) {
+      const option = question.presentCreativityOptions?.[answer.presentCreativityOptionIndex];
       if (option) presentCreativityTotal += (option.marks || 0);
     }
-    if (answer.presentMoralityOptionIndex !== undefined) {
-      const option = question.presentMoralityOptions[answer.presentMoralityOptionIndex];
+    if (answer.presentMoralityOptionIndex !== undefined && answer.presentMoralityOptionIndex !== null) {
+      const option = question.presentMoralityOptions?.[answer.presentMoralityOptionIndex];
       if (option) presentMoralityTotal += (option.marks || 0);
     }
 
     // Future Aspect
-    if (answer.futureCreativityOptionIndex !== undefined) {
-      const option = question.futureCreativityOptions[answer.futureCreativityOptionIndex];
+    if (answer.futureCreativityOptionIndex !== undefined && answer.futureCreativityOptionIndex !== null) {
+      const option = question.futureCreativityOptions?.[answer.futureCreativityOptionIndex];
       if (option) futureCreativityTotal += (option.marks || 0);
     }
-    if (answer.futureMoralityOptionIndex !== undefined) {
-      const option = question.futureMoralityOptions[answer.futureMoralityOptionIndex];
+    if (answer.futureMoralityOptionIndex !== undefined && answer.futureMoralityOptionIndex !== null) {
+      const option = question.futureMoralityOptions?.[answer.futureMoralityOptionIndex];
       if (option) futureMoralityTotal += (option.marks || 0);
     }
   });
 
-  // Calculate max possible score (assuming 20 questions, max 3 marks each)
-  const maxScore = response.surveyId.questions.length * 3;
+  // Calculate max possible score - find the highest marks in each question
+  let maxScore = 0;
+  response.surveyId.questions.forEach(q => {
+    const maxCreativity = Math.max(...(q.presentCreativityOptions?.map(o => o.marks || 0) || [0]));
+    const maxMorality = Math.max(...(q.presentMoralityOptions?.map(o => o.marks || 0) || [0]));
+    maxScore += Math.max(maxCreativity, maxMorality);
+  });
+
+  // Fallback if maxScore is 0
+  if (maxScore === 0) {
+    maxScore = response.surveyId.questions.length * 5; // Assume max 5 marks per question
+  }
 
   // Calculate percentages
-  const presentCreativityPercentage = maxScore > 0 ? ((presentCreativityTotal / maxScore) * 100).toFixed(1) : 0;
-  const presentMoralityPercentage = maxScore > 0 ? ((presentMoralityTotal / maxScore) * 100).toFixed(1) : 0;
-  const futureCreativityPercentage = maxScore > 0 ? ((futureCreativityTotal / maxScore) * 100).toFixed(1) : 0;
-  const futureMoralityPercentage = maxScore > 0 ? ((futureMoralityTotal / maxScore) * 100).toFixed(1) : 0;
+  const presentCreativityPercentage = maxScore > 0 ? ((presentCreativityTotal / maxScore) * 100).toFixed(1) : '0.0';
+  const presentMoralityPercentage = maxScore > 0 ? ((presentMoralityTotal / maxScore) * 100).toFixed(1) : '0.0';
+  const futureCreativityPercentage = maxScore > 0 ? ((futureCreativityTotal / maxScore) * 100).toFixed(1) : '0.0';
+  const futureMoralityPercentage = maxScore > 0 ? ((futureMoralityTotal / maxScore) * 100).toFixed(1) : '0.0';
 
   return {
     present: {
@@ -107,7 +143,7 @@ router.get('/organizations/:orgId', async (req, res) => {
     // Get all responses for these surveys
     const surveyIds = surveys.map(s => s._id);
     const responses = await SurveyResponse.find({ 
-      surveyId: { $in: surveyIds },
+      surveyId: { $in: surveyIds},
       isDraft: false 
     })
       .populate('surveyId')
@@ -141,18 +177,23 @@ router.get('/organizations/:orgId', async (req, res) => {
 
       // Calculate scores for each response
       const responseScores = surveyResponses.map(response => {
-        const scores = calculateResponseScores(response);
-        return {
-          employee: {
-            id: response.employeeId._id,
-            name: response.employeeId.name,
-            email: response.employeeId.email,
-            department: response.employeeId.departmentId?.name || 'N/A'
-          },
-          submittedAt: response.submittedAt,
-          scores
-        };
-      });
+        try {
+          const scores = calculateResponseScores(response);
+          return {
+            employee: {
+              id: response.employeeId?._id || 'unknown',
+              name: response.employeeId?.name || 'Unknown',
+              email: response.employeeId?.email || 'N/A',
+              department: response.employeeId?.departmentId?.name || 'N/A'
+            },
+            submittedAt: response.submittedAt,
+            scores
+          };
+        } catch (err) {
+          console.error('Error calculating scores for response:', err);
+          return null;
+        }
+      }).filter(r => r !== null); // Remove any failed calculations
 
       // Calculate aggregate scores
       const aggregateScores = {
@@ -165,9 +206,9 @@ router.get('/organizations/:orgId', async (req, res) => {
         },
         future: {
           avgCreativityPercentage: 0,
-          avgMoralityTotal: 0,
-          avgCreativityTotal: 0,
           avgMoralityPercentage: 0,
+          avgCreativityTotal: 0,
+          avgMoralityTotal: 0,
           quadrantDistribution: {}
         }
       };

@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const SupportTicket = require('../models/SupportTicket');
-const { authenticate } = require('../middleware/auth');
+const { auth } = require('../middleware/auth');
 
 // Create a new support ticket (User/CEO)
-router.post('/tickets', authenticate, async (req, res) => {
+router.post('/tickets', auth, async (req, res) => {
   try {
     const { subject, category, priority, message } = req.body;
     
@@ -37,7 +37,7 @@ router.post('/tickets', authenticate, async (req, res) => {
 });
 
 // Get user's tickets (User/CEO)
-router.get('/tickets', authenticate, async (req, res) => {
+router.get('/tickets', auth, async (req, res) => {
   try {
     const query = req.user.role === 'admin' 
       ? {} 
@@ -56,7 +56,7 @@ router.get('/tickets', authenticate, async (req, res) => {
 });
 
 // Get single ticket details
-router.get('/tickets/:id', authenticate, async (req, res) => {
+router.get('/tickets/:id', auth, async (req, res) => {
   try {
     const ticket = await SupportTicket.findById(req.params.id)
       .populate('createdBy', 'name email role')
@@ -80,7 +80,7 @@ router.get('/tickets/:id', authenticate, async (req, res) => {
 });
 
 // Add message to ticket
-router.post('/tickets/:id/messages', authenticate, async (req, res) => {
+router.post('/tickets/:id/messages', auth, async (req, res) => {
   try {
     const { message } = req.body;
     
@@ -121,7 +121,7 @@ router.post('/tickets/:id/messages', authenticate, async (req, res) => {
 });
 
 // Admin: Get all tickets with stats
-router.get('/admin/tickets', authenticate, async (req, res) => {
+router.get('/admin/tickets', auth, async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Admin access required' });
@@ -163,7 +163,7 @@ router.get('/admin/tickets', authenticate, async (req, res) => {
 });
 
 // Admin: Update ticket status/priority
-router.patch('/admin/tickets/:id', authenticate, async (req, res) => {
+router.patch('/admin/tickets/:id', auth, async (req, res) => {
   try {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Admin access required' });

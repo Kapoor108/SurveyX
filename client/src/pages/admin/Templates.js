@@ -263,86 +263,76 @@ const AdminTemplates = () => {
     }
   };
 
-  const updateCreativityOption = (index, field, value) => {
-    const opts = [...newQuestion.presentCreativityOptions];
-    opts[index] = { ...opts[index], [field]: field === 'marks' ? Number(value) : value };
-    setNewQuestion({ ...newQuestion, presentCreativityOptions: opts });
+  // Update Present Aspect options (syncs text between creativity and morality)
+  const updatePresentOption = (index, field, value, type) => {
+    if (field === 'text') {
+      // Update text in both creativity and morality
+      const cOpts = [...newQuestion.presentCreativityOptions];
+      const mOpts = [...newQuestion.presentMoralityOptions];
+      cOpts[index] = { ...cOpts[index], text: value };
+      mOpts[index] = { ...mOpts[index], text: value };
+      setNewQuestion({ ...newQuestion, presentCreativityOptions: cOpts, presentMoralityOptions: mOpts });
+    } else if (field === 'creativityMarks') {
+      const opts = [...newQuestion.presentCreativityOptions];
+      opts[index] = { ...opts[index], marks: Number(value) };
+      setNewQuestion({ ...newQuestion, presentCreativityOptions: opts });
+    } else if (field === 'moralityMarks') {
+      const opts = [...newQuestion.presentMoralityOptions];
+      opts[index] = { ...opts[index], marks: Number(value) };
+      setNewQuestion({ ...newQuestion, presentMoralityOptions: opts });
+    }
   };
 
-  const updateMoralityOption = (index, field, value) => {
-    const opts = [...newQuestion.presentMoralityOptions];
-    opts[index] = { ...opts[index], [field]: field === 'marks' ? Number(value) : value };
-    setNewQuestion({ ...newQuestion, presentMoralityOptions: opts });
+  // Update Future Aspect options (syncs text between creativity and morality)
+  const updateFutureOption = (index, field, value, type) => {
+    if (field === 'text') {
+      // Update text in both creativity and morality
+      const cOpts = [...newQuestion.futureCreativityOptions];
+      const mOpts = [...newQuestion.futureMoralityOptions];
+      cOpts[index] = { ...cOpts[index], text: value };
+      mOpts[index] = { ...mOpts[index], text: value };
+      setNewQuestion({ ...newQuestion, futureCreativityOptions: cOpts, futureMoralityOptions: mOpts });
+    } else if (field === 'creativityMarks') {
+      const opts = [...newQuestion.futureCreativityOptions];
+      opts[index] = { ...opts[index], marks: Number(value) };
+      setNewQuestion({ ...newQuestion, futureCreativityOptions: opts });
+    } else if (field === 'moralityMarks') {
+      const opts = [...newQuestion.futureMoralityOptions];
+      opts[index] = { ...opts[index], marks: Number(value) };
+      setNewQuestion({ ...newQuestion, futureMoralityOptions: opts });
+    }
   };
 
-  const updateFutureCreativityOption = (index, field, value) => {
-    const opts = [...newQuestion.futureCreativityOptions];
-    opts[index] = { ...opts[index], [field]: field === 'marks' ? Number(value) : value };
-    setNewQuestion({ ...newQuestion, futureCreativityOptions: opts });
-  };
-
-  const updateFutureMoralityOption = (index, field, value) => {
-    const opts = [...newQuestion.futureMoralityOptions];
-    opts[index] = { ...opts[index], [field]: field === 'marks' ? Number(value) : value };
-    setNewQuestion({ ...newQuestion, futureMoralityOptions: opts });
-  };
-
-  const addCreativityOption = () => {
+  const addPresentOption = () => {
     setNewQuestion({
       ...newQuestion,
-      presentCreativityOptions: [...newQuestion.presentCreativityOptions, { text: '', marks: 0 }]
-    });
-  };
-
-  const addMoralityOption = () => {
-    setNewQuestion({
-      ...newQuestion,
+      presentCreativityOptions: [...newQuestion.presentCreativityOptions, { text: '', marks: 0 }],
       presentMoralityOptions: [...newQuestion.presentMoralityOptions, { text: '', marks: 0 }]
     });
   };
 
-  const addFutureCreativityOption = () => {
+  const addFutureOption = () => {
     setNewQuestion({
       ...newQuestion,
-      futureCreativityOptions: [...newQuestion.futureCreativityOptions, { text: '', marks: 0 }]
-    });
-  };
-
-  const addFutureMoralityOption = () => {
-    setNewQuestion({
-      ...newQuestion,
+      futureCreativityOptions: [...newQuestion.futureCreativityOptions, { text: '', marks: 0 }],
       futureMoralityOptions: [...newQuestion.futureMoralityOptions, { text: '', marks: 0 }]
     });
   };
 
-  const removeCreativityOption = (index) => {
+  const removePresentOption = (index) => {
     if (newQuestion.presentCreativityOptions.length <= 2) return;
     setNewQuestion({
       ...newQuestion,
-      presentCreativityOptions: newQuestion.presentCreativityOptions.filter((_, i) => i !== index)
-    });
-  };
-
-  const removeMoralityOption = (index) => {
-    if (newQuestion.presentMoralityOptions.length <= 2) return;
-    setNewQuestion({
-      ...newQuestion,
+      presentCreativityOptions: newQuestion.presentCreativityOptions.filter((_, i) => i !== index),
       presentMoralityOptions: newQuestion.presentMoralityOptions.filter((_, i) => i !== index)
     });
   };
 
-  const removeFutureCreativityOption = (index) => {
+  const removeFutureOption = (index) => {
     if (newQuestion.futureCreativityOptions.length <= 2) return;
     setNewQuestion({
       ...newQuestion,
-      futureCreativityOptions: newQuestion.futureCreativityOptions.filter((_, i) => i !== index)
-    });
-  };
-
-  const removeFutureMoralityOption = (index) => {
-    if (newQuestion.futureMoralityOptions.length <= 2) return;
-    setNewQuestion({
-      ...newQuestion,
+      futureCreativityOptions: newQuestion.futureCreativityOptions.filter((_, i) => i !== index),
       futureMoralityOptions: newQuestion.futureMoralityOptions.filter((_, i) => i !== index)
     });
   };
@@ -583,119 +573,128 @@ const AdminTemplates = () => {
                       className="col-span-5 px-3 py-2 border rounded bg-white" />
                   </div>
                   
-                  {/* Present Aspect */}
-                  <div className="mb-4">
-                    <h5 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                      <span className="w-3 h-3 bg-blue-500 rounded-full"></span>
-                      Present Aspect
-                    </h5>
-                    <div className="grid grid-cols-2 gap-4">
-                      {/* Present Creativity Options */}
-                      <div className="bg-white p-3 rounded border border-indigo-200">
-                        <h6 className="font-medium text-indigo-700 mb-2 text-sm flex items-center gap-2">
-                          <span className="w-2 h-2 bg-indigo-500 rounded-full"></span>
-                          Creativity (C)
-                        </h6>
-                        <div className="space-y-2 max-h-40 overflow-y-auto">
-                          {newQuestion.presentCreativityOptions.map((opt, i) => (
-                            <div key={i} className="flex gap-2 items-center">
-                              <input type="text" placeholder={`Option ${i + 1}`} value={opt.text}
-                                onChange={e => updateCreativityOption(i, 'text', e.target.value)}
-                                className="flex-1 px-2 py-1 border rounded text-sm" />
-                              <input type="number" value={opt.marks} placeholder="Pts"
-                                onChange={e => updateCreativityOption(i, 'marks', e.target.value)}
-                                className="w-14 px-2 py-1 border rounded text-sm text-center" />
-                              <button type="button" onClick={() => removeCreativityOption(i)} 
-                                className="text-red-400 hover:text-red-600 text-lg">×</button>
-                            </div>
-                          ))}
-                        </div>
-                        <button type="button" onClick={addCreativityOption} className="text-xs text-indigo-600 hover:text-indigo-800 mt-2">
-                          + Add Option
-                        </button>
-                      </div>
+                  {/* Present and Future Aspects Side by Side */}
+                  <div className="grid grid-cols-2 gap-6 mb-4">
+                    {/* Present Aspect - LEFT SIDE */}
+                    <div>
+                      <h5 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                        <span className="w-3 h-3 bg-blue-500 rounded-full"></span>
+                        Present Aspect
+                      </h5>
                       
-                      {/* Present Morality Options */}
-                      <div className="bg-white p-3 rounded border border-green-200">
-                        <h6 className="font-medium text-green-700 mb-2 text-sm flex items-center gap-2">
-                          <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                          Morality (M)
-                        </h6>
-                        <div className="space-y-2 max-h-40 overflow-y-auto">
-                          {newQuestion.presentMoralityOptions.map((opt, i) => (
-                            <div key={i} className="flex gap-2 items-center">
-                              <input type="text" placeholder={`Option ${i + 1}`} value={opt.text}
-                                onChange={e => updateMoralityOption(i, 'text', e.target.value)}
-                                className="flex-1 px-2 py-1 border rounded text-sm" />
-                              <input type="number" value={opt.marks} placeholder="Pts"
-                                onChange={e => updateMoralityOption(i, 'marks', e.target.value)}
-                                className="w-14 px-2 py-1 border rounded text-sm text-center" />
-                              <button type="button" onClick={() => removeMoralityOption(i)} 
-                                className="text-red-400 hover:text-red-600 text-lg">×</button>
+                      <div className="bg-white p-3 rounded border border-blue-200">
+                        {/* Table Header */}
+                        <div className="grid grid-cols-12 gap-2 mb-2 pb-2 border-b border-gray-200">
+                          <div className="col-span-6 text-xs font-semibold text-gray-600 uppercase">Option Text</div>
+                          <div className="col-span-2 text-xs font-semibold text-indigo-600 uppercase text-center">C Marks</div>
+                          <div className="col-span-2 text-xs font-semibold text-green-600 uppercase text-center">M Marks</div>
+                          <div className="col-span-2 text-xs font-semibold text-gray-600 uppercase text-center">Action</div>
+                        </div>
+                        
+                        {/* Table Rows */}
+                        <div className="space-y-2 max-h-60 overflow-y-auto">
+                          {newQuestion.presentCreativityOptions.map((opt, i) => (
+                            <div key={i} className="grid grid-cols-12 gap-2 items-center">
+                              <input 
+                                type="text" 
+                                placeholder={`Option ${i + 1}`} 
+                                value={opt.text}
+                                onChange={e => updatePresentOption(i, 'text', e.target.value)}
+                                className="col-span-6 px-2 py-1 border rounded text-sm" 
+                              />
+                              <input 
+                                type="number" 
+                                value={newQuestion.presentCreativityOptions[i].marks} 
+                                placeholder="C"
+                                onChange={e => updatePresentOption(i, 'creativityMarks', e.target.value)}
+                                className="col-span-2 px-2 py-1 border rounded text-sm text-center bg-indigo-50" 
+                              />
+                              <input 
+                                type="number" 
+                                value={newQuestion.presentMoralityOptions[i].marks} 
+                                placeholder="M"
+                                onChange={e => updatePresentOption(i, 'moralityMarks', e.target.value)}
+                                className="col-span-2 px-2 py-1 border rounded text-sm text-center bg-green-50" 
+                              />
+                              <button 
+                                type="button" 
+                                onClick={() => removePresentOption(i)} 
+                                className="col-span-2 text-red-400 hover:text-red-600 text-lg flex justify-center"
+                              >
+                                ×
+                              </button>
                             </div>
                           ))}
                         </div>
-                        <button type="button" onClick={addMoralityOption} className="text-xs text-green-600 hover:text-green-800 mt-2">
-                          + Add Option
+                        
+                        <button 
+                          type="button" 
+                          onClick={addPresentOption} 
+                          className="text-xs text-blue-600 hover:text-blue-800 mt-3 flex items-center gap-1"
+                        >
+                          <span className="text-lg">+</span> Add Option
                         </button>
                       </div>
                     </div>
-                  </div>
-                  
-                  {/* Future Aspect */}
-                  <div className="mb-4">
-                    <h5 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                      <span className="w-3 h-3 bg-purple-500 rounded-full"></span>
-                      Future Aspect
-                    </h5>
-                    <div className="grid grid-cols-2 gap-4">
-                      {/* Future Creativity Options */}
-                      <div className="bg-white p-3 rounded border border-purple-200">
-                        <h6 className="font-medium text-purple-700 mb-2 text-sm flex items-center gap-2">
-                          <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-                          Creativity (C)
-                        </h6>
-                        <div className="space-y-2 max-h-40 overflow-y-auto">
-                          {newQuestion.futureCreativityOptions.map((opt, i) => (
-                            <div key={i} className="flex gap-2 items-center">
-                              <input type="text" placeholder={`Option ${i + 1}`} value={opt.text}
-                                onChange={e => updateFutureCreativityOption(i, 'text', e.target.value)}
-                                className="flex-1 px-2 py-1 border rounded text-sm" />
-                              <input type="number" value={opt.marks} placeholder="Pts"
-                                onChange={e => updateFutureCreativityOption(i, 'marks', e.target.value)}
-                                className="w-14 px-2 py-1 border rounded text-sm text-center" />
-                              <button type="button" onClick={() => removeFutureCreativityOption(i)} 
-                                className="text-red-400 hover:text-red-600 text-lg">×</button>
-                            </div>
-                          ))}
-                        </div>
-                        <button type="button" onClick={addFutureCreativityOption} className="text-xs text-purple-600 hover:text-purple-800 mt-2">
-                          + Add Option
-                        </button>
-                      </div>
+                    
+                    {/* Future Aspect - RIGHT SIDE */}
+                    <div>
+                      <h5 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                        <span className="w-3 h-3 bg-purple-500 rounded-full"></span>
+                        Future Aspect
+                      </h5>
                       
-                      {/* Future Morality Options */}
-                      <div className="bg-white p-3 rounded border border-orange-200">
-                        <h6 className="font-medium text-orange-700 mb-2 text-sm flex items-center gap-2">
-                          <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
-                          Morality (M)
-                        </h6>
-                        <div className="space-y-2 max-h-40 overflow-y-auto">
-                          {newQuestion.futureMoralityOptions.map((opt, i) => (
-                            <div key={i} className="flex gap-2 items-center">
-                              <input type="text" placeholder={`Option ${i + 1}`} value={opt.text}
-                                onChange={e => updateFutureMoralityOption(i, 'text', e.target.value)}
-                                className="flex-1 px-2 py-1 border rounded text-sm" />
-                              <input type="number" value={opt.marks} placeholder="Pts"
-                                onChange={e => updateFutureMoralityOption(i, 'marks', e.target.value)}
-                                className="w-14 px-2 py-1 border rounded text-sm text-center" />
-                              <button type="button" onClick={() => removeFutureMoralityOption(i)} 
-                                className="text-red-400 hover:text-red-600 text-lg">×</button>
+                      <div className="bg-white p-3 rounded border border-purple-200">
+                        {/* Table Header */}
+                        <div className="grid grid-cols-12 gap-2 mb-2 pb-2 border-b border-gray-200">
+                          <div className="col-span-6 text-xs font-semibold text-gray-600 uppercase">Option Text</div>
+                          <div className="col-span-2 text-xs font-semibold text-purple-600 uppercase text-center">C Marks</div>
+                          <div className="col-span-2 text-xs font-semibold text-orange-600 uppercase text-center">M Marks</div>
+                          <div className="col-span-2 text-xs font-semibold text-gray-600 uppercase text-center">Action</div>
+                        </div>
+                        
+                        {/* Table Rows */}
+                        <div className="space-y-2 max-h-60 overflow-y-auto">
+                          {newQuestion.futureCreativityOptions.map((opt, i) => (
+                            <div key={i} className="grid grid-cols-12 gap-2 items-center">
+                              <input 
+                                type="text" 
+                                placeholder={`Option ${i + 1}`} 
+                                value={opt.text}
+                                onChange={e => updateFutureOption(i, 'text', e.target.value)}
+                                className="col-span-6 px-2 py-1 border rounded text-sm" 
+                              />
+                              <input 
+                                type="number" 
+                                value={newQuestion.futureCreativityOptions[i].marks} 
+                                placeholder="C"
+                                onChange={e => updateFutureOption(i, 'creativityMarks', e.target.value)}
+                                className="col-span-2 px-2 py-1 border rounded text-sm text-center bg-purple-50" 
+                              />
+                              <input 
+                                type="number" 
+                                value={newQuestion.futureMoralityOptions[i].marks} 
+                                placeholder="M"
+                                onChange={e => updateFutureOption(i, 'moralityMarks', e.target.value)}
+                                className="col-span-2 px-2 py-1 border rounded text-sm text-center bg-orange-50" 
+                              />
+                              <button 
+                                type="button" 
+                                onClick={() => removeFutureOption(i)} 
+                                className="col-span-2 text-red-400 hover:text-red-600 text-lg flex justify-center"
+                              >
+                                ×
+                              </button>
                             </div>
                           ))}
                         </div>
-                        <button type="button" onClick={addFutureMoralityOption} className="text-xs text-orange-600 hover:text-orange-800 mt-2">
-                          + Add Option
+                        
+                        <button 
+                          type="button" 
+                          onClick={addFutureOption} 
+                          className="text-xs text-purple-600 hover:text-purple-800 mt-3 flex items-center gap-1"
+                        >
+                          <span className="text-lg">+</span> Add Option
                         </button>
                       </div>
                     </div>

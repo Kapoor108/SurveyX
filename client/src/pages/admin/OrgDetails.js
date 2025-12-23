@@ -105,27 +105,53 @@ const AdminOrgDetails = () => {
           </div>
 
           <div className="bg-white rounded-lg shadow p-6 lg:col-span-2">
-            <h2 className="text-lg font-semibold mb-4">Surveys</h2>
-            <table className="w-full">
-              <thead>
-                <tr className="text-left text-sm text-gray-500 border-b">
-                  <th className="pb-2">Title</th>
-                  <th className="pb-2">Status</th>
-                  <th className="pb-2">Assigned</th>
-                  <th className="pb-2">Completed</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.surveys.map(survey => (
-                  <tr key={survey._id} className="border-b">
-                    <td className="py-3">{survey.title}</td>
-                    <td><span className={`px-2 py-1 text-xs rounded ${survey.status === 'active' ? 'bg-green-100' : 'bg-gray-100'}`}>{survey.status}</span></td>
-                    <td>{data.stats.totalAssignments}</td>
-                    <td className="text-green-600">{data.stats.completedAssignments}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <h2 className="text-lg font-semibold mb-4">Surveys & Reports</h2>
+            <div className="space-y-3">
+              {data.surveys.length === 0 ? (
+                <p className="text-gray-500 text-center py-8">No surveys created yet</p>
+              ) : (
+                data.surveys.map(survey => (
+                  <div key={survey._id} className="border rounded-lg p-4 hover:border-indigo-300 transition-colors">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900 mb-1">{survey.title}</h3>
+                        <p className="text-sm text-gray-600 mb-3">{survey.description}</p>
+                        <div className="flex items-center gap-4 text-sm">
+                          <span className={`px-3 py-1 rounded-full ${
+                            survey.status === 'active' ? 'bg-green-100 text-green-700' : 
+                            survey.status === 'closed' ? 'bg-gray-100 text-gray-700' : 
+                            'bg-yellow-100 text-yellow-700'
+                          }`}>
+                            {survey.status}
+                          </span>
+                          <span className="text-gray-500">
+                            <svg className="w-4 h-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            {data.stats.totalAssignments} assigned
+                          </span>
+                          <span className="text-green-600">
+                            <svg className="w-4 h-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {data.stats.completedAssignments} completed
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => navigate(`/admin/reports/${id}/survey/${survey._id}`)}
+                        className="ml-4 flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-indigo-700 hover:to-purple-700 shadow-md hover:shadow-lg transition-all font-medium text-sm"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                        View Report
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       )}

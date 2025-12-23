@@ -13,6 +13,7 @@ import AdminOrgDetails from './pages/admin/OrgDetails';
 import AdminTemplates from './pages/admin/Templates';
 import AdminUserDetails from './pages/admin/UserDetails';
 import AdminReports from './pages/admin/Reports';
+import SurveyReport from './pages/admin/SurveyReport';
 import CEODashboard from './pages/ceo/Dashboard';
 import CEODepartments from './pages/ceo/Departments';
 import CEOEmployees from './pages/ceo/Employees';
@@ -106,6 +107,11 @@ function App() {
           <Route path="/admin/reports/:orgId" element={
             <ProtectedRoute allowedRoles={['admin']}>
               <AdminReports />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/reports/:orgId/survey/:surveyId" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <SurveyReport />
             </ProtectedRoute>
           } />
           
