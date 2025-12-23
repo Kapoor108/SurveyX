@@ -1,15 +1,18 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
 import AuthCallback from './pages/AuthCallback';
+import Help from './pages/Help';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminOrganizations from './pages/admin/Organizations';
 import AdminOrgDetails from './pages/admin/OrgDetails';
 import AdminTemplates from './pages/admin/Templates';
 import AdminUserDetails from './pages/admin/UserDetails';
+import AdminReports from './pages/admin/Reports';
 import CEODashboard from './pages/ceo/Dashboard';
 import CEODepartments from './pages/ceo/Departments';
 import CEOEmployees from './pages/ceo/Employees';
@@ -100,6 +103,11 @@ function App() {
               <AdminUserDetails />
             </ProtectedRoute>
           } />
+          <Route path="/admin/reports/:orgId" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminReports />
+            </ProtectedRoute>
+          } />
           
           {/* CEO Routes - Only CEO can access */}
           <Route path="/ceo" element={
@@ -139,10 +147,15 @@ function App() {
               <UserSurvey />
             </ProtectedRoute>
           } />
+          <Route path="/help" element={
+            <ProtectedRoute allowedRoles={['user', 'ceo']}>
+              <Help />
+            </ProtectedRoute>
+          } />
           
           {/* Default redirect */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

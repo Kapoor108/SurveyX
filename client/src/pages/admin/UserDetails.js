@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import Layout from '../../components/Layout';
+import AdminLayout from '../../components/AdminLayout';
 import api from '../../utils/api';
 
 const AdminUserDetails = () => {
@@ -22,29 +22,29 @@ const AdminUserDetails = () => {
 
   if (loading) {
     return (
-      <Layout>
+      <AdminLayout>
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
         </div>
-      </Layout>
+      </AdminLayout>
     );
   }
 
   if (!data) {
     return (
-      <Layout>
+      <AdminLayout>
         <div className="text-center py-12">
           <p className="text-gray-500">User not found</p>
           <button onClick={() => navigate(-1)} className="mt-4 text-indigo-600 hover:text-indigo-800">Go Back</button>
         </div>
-      </Layout>
+      </AdminLayout>
     );
   }
 
   const { user, surveyResults, summary } = data;
 
   return (
-    <Layout title="User Details">
+    <AdminLayout title="User Details">
       {/* Back Button */}
       <button onClick={() => navigate(-1)} className="flex items-center text-gray-600 hover:text-gray-800 mb-6">
         <svg className="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -212,7 +212,7 @@ const AdminUserDetails = () => {
           </div>
         )}
       </div>
-    </Layout>
+    </AdminLayout>
   );
 };
 

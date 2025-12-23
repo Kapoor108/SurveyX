@@ -8,8 +8,10 @@ const optionSchema = new mongoose.Schema({
 const questionSchema = new mongoose.Schema({
   questionNumber: { type: String }, // e.g., "6.01"
   question: { type: String, required: true },
-  creativityOptions: [optionSchema], // Separate options for creativity
-  moralityOptions: [optionSchema],   // Separate options for morality
+  presentCreativityOptions: [optionSchema], // Present Aspect - Creativity
+  presentMoralityOptions: [optionSchema],   // Present Aspect - Morality
+  futureCreativityOptions: [optionSchema],  // Future Aspect - Creativity
+  futureMoralityOptions: [optionSchema],    // Future Aspect - Morality
   required: { type: Boolean, default: true }
 });
 

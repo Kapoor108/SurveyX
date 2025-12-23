@@ -22,10 +22,12 @@ const Layout = ({ children, title, showBack = false }) => {
       { to: '/ceo', label: 'Dashboard' },
       { to: '/ceo/departments', label: 'Departments' },
       { to: '/ceo/employees', label: 'Employees' },
-      { to: '/ceo/surveys', label: 'Surveys' }
+      { to: '/ceo/surveys', label: 'Surveys' },
+      { to: '/help', label: 'Help' }
     ],
     user: [
-      { to: '/dashboard', label: 'Dashboard' }
+      { to: '/dashboard', label: 'Dashboard' },
+      { to: '/help', label: 'Help' }
     ]
   };
 
