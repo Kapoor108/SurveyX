@@ -40,22 +40,22 @@ const calculateResponseScores = (response) => {
     if (!question) return;
 
     // Present Aspect
-    if (answer.presentCreativityAnswer !== undefined) {
-      const option = question.presentCreativityOptions[answer.presentCreativityAnswer];
+    if (answer.presentCreativityOptionIndex !== undefined) {
+      const option = question.presentCreativityOptions[answer.presentCreativityOptionIndex];
       if (option) presentCreativityTotal += (option.marks || 0);
     }
-    if (answer.presentMoralityAnswer !== undefined) {
-      const option = question.presentMoralityOptions[answer.presentMoralityAnswer];
+    if (answer.presentMoralityOptionIndex !== undefined) {
+      const option = question.presentMoralityOptions[answer.presentMoralityOptionIndex];
       if (option) presentMoralityTotal += (option.marks || 0);
     }
 
     // Future Aspect
-    if (answer.futureCreativityAnswer !== undefined) {
-      const option = question.futureCreativityOptions[answer.futureCreativityAnswer];
+    if (answer.futureCreativityOptionIndex !== undefined) {
+      const option = question.futureCreativityOptions[answer.futureCreativityOptionIndex];
       if (option) futureCreativityTotal += (option.marks || 0);
     }
-    if (answer.futureMoralityAnswer !== undefined) {
-      const option = question.futureMoralityOptions[answer.futureMoralityAnswer];
+    if (answer.futureMoralityOptionIndex !== undefined) {
+      const option = question.futureMoralityOptions[answer.futureMoralityOptionIndex];
       if (option) futureMoralityTotal += (option.marks || 0);
     }
   });
