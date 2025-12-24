@@ -4,17 +4,12 @@ import api from '../../utils/api';
 
 const AdminDashboard = () => {
   const [data, setData] = useState({ stats: {}, recentActivity: [] });
-  const [supportStats, setSupportStats] = useState({ open: 0, urgent: 0, total: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([
-      api.get('/admin/dashboard'),
-      api.get('/support/admin/tickets')
-    ])
-      .then(([dashRes, supportRes]) => {
-        setData(dashRes.data);
-        setSupportStats(supportRes.data.stats);
+    api.get('/admin/dashboard')
+      .then(res => {
+        setData(res.data);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -115,7 +110,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Secondary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
           <div className="flex items-center justify-between">
             <div>
@@ -125,20 +120,6 @@ const AdminDashboard = () => {
             <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-lg flex items-center justify-center">
               <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500 font-medium mb-1">Support Tickets</p>
-              <p className="text-2xl font-bold text-gray-900">{supportStats.open || 0}</p>
-              <p className="text-xs text-gray-500 mt-1">Open tickets</p>
-            </div>
-            <div className="w-12 h-12 bg-gradient-to-br from-indigo-400 to-indigo-500 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
               </svg>
             </div>
           </div>

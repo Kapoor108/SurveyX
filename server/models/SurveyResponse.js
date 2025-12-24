@@ -3,14 +3,12 @@ const mongoose = require('mongoose');
 const answerSchema = new mongoose.Schema({
   questionId: { type: mongoose.Schema.Types.ObjectId, required: true },
   questionNumber: { type: String },
-  // Present Aspect
-  presentCreativityOptionIndex: { type: Number },
-  presentMoralityOptionIndex: { type: Number },
+  // Present Aspect - user selects ONE option
+  presentOptionIndex: { type: Number },
   presentCreativityMarks: { type: Number, default: 0 },
   presentMoralityMarks: { type: Number, default: 0 },
-  // Future Aspect
-  futureCreativityOptionIndex: { type: Number },
-  futureMoralityOptionIndex: { type: Number },
+  // Future Aspect - user selects ONE option
+  futureOptionIndex: { type: Number },
   futureCreativityMarks: { type: Number, default: 0 },
   futureMoralityMarks: { type: Number, default: 0 }
 });

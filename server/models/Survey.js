@@ -2,16 +2,15 @@ const mongoose = require('mongoose');
 
 const optionSchema = new mongoose.Schema({
   text: { type: String, required: true },
-  marks: { type: Number, default: 0 }
+  creativityMarks: { type: Number, default: 0 },
+  moralityMarks: { type: Number, default: 0 }
 });
 
 const questionSchema = new mongoose.Schema({
   questionNumber: { type: String }, // e.g., "6.01"
   question: { type: String, required: true },
-  presentCreativityOptions: [optionSchema], // Present Aspect - Creativity
-  presentMoralityOptions: [optionSchema],   // Present Aspect - Morality
-  futureCreativityOptions: [optionSchema],  // Future Aspect - Creativity
-  futureMoralityOptions: [optionSchema],    // Future Aspect - Morality
+  presentOptions: [optionSchema],  // Present Aspect - ONE array with both C & M marks
+  futureOptions: [optionSchema],   // Future Aspect - ONE array with both C & M marks
   required: { type: Boolean, default: true }
 });
 

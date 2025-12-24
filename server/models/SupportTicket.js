@@ -8,7 +8,7 @@ const messageSchema = new mongoose.Schema({
 });
 
 const supportTicketSchema = new mongoose.Schema({
-  ticketNumber: { type: String, unique: true, required: true },
+  ticketNumber: { type: String, unique: true },
   subject: { type: String, required: true },
   category: { 
     type: String, 
@@ -35,12 +35,21 @@ const supportTicketSchema = new mongoose.Schema({
   resolvedAt: { type: Date }
 });
 
-// Generate ticket number
-supportTicketSchema.pre('save', async function(next) {
-  if (!this.ticketNumber) {
-    const count = await mongoose.model('SupportTicket').countDocuments();
-    this.ticketNumber = `TKT-${String(count + 1).padStart(6, '0')}`;
+// Generate ticket number before validation
+supportTicketSchema.pre('validate', async function(next) {
+  try {
+    if (!this.ticketNumber) {
+      const count = await this.constructor.countDocuments();
+      this.ticketNumber = `TKT-${String(count + 1).padStart(6, '0')}`;
+    }
+    next();
+  } catch (error) {
+    next(error);
   }
+});
+
+// Update timestamp on save
+supportTicketSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
   next();
 });

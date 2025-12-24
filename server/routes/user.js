@@ -112,38 +112,65 @@ router.post('/surveys/:id/submit', async (req, res) => {
     const survey = await Survey.findById(req.params.id);
     if (!survey) return res.status(404).json({ error: 'Survey not found' });
     
-    let totalCreativityMarks = 0;
-    let totalMoralityMarks = 0;
+    // Initialize totals for Present and Future aspects
+    let presentCreativityTotal = 0;
+    let presentMoralityTotal = 0;
+    let futureCreativityTotal = 0;
+    let futureMoralityTotal = 0;
     
     // Calculate marks for each answer
     const formattedAnswers = answers.map(a => {
       const question = survey.questions.find(q => q._id.toString() === a.questionId);
-      let creativityMarks = 0;
-      let moralityMarks = 0;
+      let presentCreativityMarks = 0;
+      let presentMoralityMarks = 0;
+      let futureCreativityMarks = 0;
+      let futureMoralityMarks = 0;
       
       if (question) {
-        // Get marks from selected creativity option
-        if (a.creativityOptionIndex !== undefined && question.creativityOptions && question.creativityOptions[a.creativityOptionIndex]) {
-          creativityMarks = question.creativityOptions[a.creativityOptionIndex].marks || 0;
+        // Present Aspect - user selected ONE option with BOTH marks
+        if (a.presentOptionIndex !== undefined && question.presentOptions && question.presentOptions[a.presentOptionIndex]) {
+          const presentOpt = question.presentOptions[a.presentOptionIndex];
+          presentCreativityMarks = presentOpt.creativityMarks || 0;
+          presentMoralityMarks = presentOpt.moralityMarks || 0;
         }
-        // Get marks from selected morality option
-        if (a.moralityOptionIndex !== undefined && question.moralityOptions && question.moralityOptions[a.moralityOptionIndex]) {
-          moralityMarks = question.moralityOptions[a.moralityOptionIndex].marks || 0;
+        // Future Aspect - user selected ONE option with BOTH marks
+        if (a.futureOptionIndex !== undefined && question.futureOptions && question.futureOptions[a.futureOptionIndex]) {
+          const futureOpt = question.futureOptions[a.futureOptionIndex];
+          futureCreativityMarks = futureOpt.creativityMarks || 0;
+          futureMoralityMarks = futureOpt.moralityMarks || 0;
         }
       }
       
-      totalCreativityMarks += creativityMarks;
-      totalMoralityMarks += moralityMarks;
+      presentCreativityTotal += presentCreativityMarks;
+      presentMoralityTotal += presentMoralityMarks;
+      futureCreativityTotal += futureCreativityMarks;
+      futureMoralityTotal += futureMoralityMarks;
       
       return {
         questionId: a.questionId,
         questionNumber: question?.questionNumber || '',
-        creativityOptionIndex: a.creativityOptionIndex,
-        moralityOptionIndex: a.moralityOptionIndex,
-        creativityMarks,
-        moralityMarks
+        presentOptionIndex: a.presentOptionIndex,
+        presentCreativityMarks,
+        presentMoralityMarks,
+        futureOptionIndex: a.futureOptionIndex,
+        futureCreativityMarks,
+        futureMoralityMarks
       };
     });
+    
+    // Calculate percentages and bands
+    const maxScore = survey.questions.length * 5;
+    
+    const presentCreativityPercentage = ((presentCreativityTotal / maxScore) * 100).toFixed(1);
+    const presentMoralityPercentage = ((presentMoralityTotal / maxScore) * 100).toFixed(1);
+    const futureCreativityPercentage = ((futureCreativityTotal / maxScore) * 100).toFixed(1);
+    const futureMoralityPercentage = ((futureMoralityTotal / maxScore) * 100).toFixed(1);
+    
+    const getBand = (percentage) => {
+      if (percentage < 40) return 'Early';
+      if (percentage < 50) return 'Emerging';
+      return 'Leading';
+    };
     
     const response = await SurveyResponse.findOneAndUpdate(
       { surveyId: req.params.id, employeeId: req.user._id },
@@ -153,8 +180,20 @@ router.post('/surveys/:id/submit', async (req, res) => {
         orgId: req.user.orgId,
         departmentId: req.user.departmentId,
         answers: formattedAnswers,
-        totalCreativityMarks,
-        totalMoralityMarks,
+        // Present Aspect
+        presentCreativityTotal,
+        presentMoralityTotal,
+        presentCreativityPercentage: parseFloat(presentCreativityPercentage),
+        presentMoralityPercentage: parseFloat(presentMoralityPercentage),
+        presentCreativityBand: getBand(parseFloat(presentCreativityPercentage)),
+        presentMoralityBand: getBand(parseFloat(presentMoralityPercentage)),
+        // Future Aspect
+        futureCreativityTotal,
+        futureMoralityTotal,
+        futureCreativityPercentage: parseFloat(futureCreativityPercentage),
+        futureMoralityPercentage: parseFloat(futureMoralityPercentage),
+        futureCreativityBand: getBand(parseFloat(futureCreativityPercentage)),
+        futureMoralityBand: getBand(parseFloat(futureMoralityPercentage)),
         isDraft: false,
         submittedAt: new Date()
       },

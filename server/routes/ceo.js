@@ -184,27 +184,75 @@ router.post('/invite', async (req, res) => {
 router.post('/invite/batch', async (req, res) => {
   try {
     const { employees } = req.body; // Array of { name, email, departmentId }
+    
+    if (!employees || !Array.isArray(employees) || employees.length === 0) {
+      return res.status(400).json({ error: 'No employees provided' });
+    }
+
     const orgId = req.user.orgId;
     const org = await require('../models/Organization').findById(orgId);
+    
+    if (!org) {
+      return res.status(404).json({ error: 'Organization not found' });
+    }
+
     const results = [];
+    let invitedCount = 0;
+    let skippedCount = 0;
+    let failedCount = 0;
 
     for (const emp of employees) {
       try {
-        // Skip if already exists or has pending invite
-        const existingUser = await Employee.findOne({ email: emp.email, inviteStatus: 'accepted' });
-        const existingInvite = await InviteLog.findOne({ email: emp.email, status: 'sent' });
-        
-        if (existingUser || existingInvite) {
-          results.push({ email: emp.email, status: 'skipped', reason: 'Already exists or pending' });
+        // Validate email
+        if (!emp.email || !emp.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+          results.push({ 
+            email: emp.email || 'invalid', 
+            status: 'failed', 
+            reason: 'Invalid email format' 
+          });
+          failedCount++;
           continue;
         }
 
+        // Skip if already exists or has pending invite
+        const existingUser = await Employee.findOne({ 
+          email: emp.email.toLowerCase(), 
+          inviteStatus: 'accepted' 
+        });
+        
+        if (existingUser) {
+          results.push({ 
+            email: emp.email, 
+            status: 'skipped', 
+            reason: 'User already has an active account' 
+          });
+          skippedCount++;
+          continue;
+        }
+
+        const existingInvite = await InviteLog.findOne({ 
+          email: emp.email.toLowerCase(), 
+          status: 'sent' 
+        });
+        
+        if (existingInvite) {
+          results.push({ 
+            email: emp.email, 
+            status: 'skipped', 
+            reason: 'Invitation already pending' 
+          });
+          skippedCount++;
+          continue;
+        }
+
+        // Get department info
         const department = emp.departmentId ? await Department.findById(emp.departmentId) : null;
         const inviteToken = uuidv4();
 
+        // Create employee record
         await Employee.create({
           name: emp.name || 'Employee',
-          email: emp.email,
+          email: emp.email.toLowerCase(),
           role: 'user',
           orgId,
           departmentId: emp.departmentId,
@@ -212,8 +260,9 @@ router.post('/invite/batch', async (req, res) => {
           inviteStatus: 'pending'
         });
 
+        // Create invite log
         await InviteLog.create({
-          email: emp.email,
+          email: emp.email.toLowerCase(),
           orgId,
           departmentId: emp.departmentId,
           invitedBy: req.user._id,
@@ -221,16 +270,44 @@ router.post('/invite/batch', async (req, res) => {
           token: inviteToken
         });
 
-        await sendUserInviteEmail(emp.email, inviteToken, org.name, department?.name);
-        results.push({ email: emp.email, status: 'invited' });
+        // Send invitation email
+        await sendUserInviteEmail(
+          emp.email.toLowerCase(), 
+          inviteToken, 
+          org.name, 
+          department?.name
+        );
+
+        results.push({ 
+          email: emp.email, 
+          status: 'invited',
+          name: emp.name,
+          department: department?.name || 'N/A'
+        });
+        invitedCount++;
       } catch (err) {
-        results.push({ email: emp.email, status: 'failed', reason: err.message });
+        console.error(`Failed to invite ${emp.email}:`, err);
+        results.push({ 
+          email: emp.email, 
+          status: 'failed', 
+          reason: err.message 
+        });
+        failedCount++;
       }
     }
 
-    const invited = results.filter(r => r.status === 'invited').length;
-    res.json({ results, message: `${invited} invitations sent` });
+    res.json({ 
+      results, 
+      summary: {
+        total: employees.length,
+        invited: invitedCount,
+        skipped: skippedCount,
+        failed: failedCount
+      },
+      message: `Successfully invited ${invitedCount} employee(s). ${skippedCount} skipped, ${failedCount} failed.`
+    });
   } catch (err) {
+    console.error('Batch invite error:', err);
     res.status(500).json({ error: err.message });
   }
 });

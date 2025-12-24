@@ -8,9 +8,14 @@ router.post('/tickets', auth, async (req, res) => {
   try {
     const { subject, category, priority, message } = req.body;
     
+    console.log('Creating ticket:', { subject, category, priority, message, user: req.user });
+    
     if (!subject || !message) {
       return res.status(400).json({ error: 'Subject and message are required' });
     }
+
+    // Ensure user has orgId if they're not admin
+    const orgId = req.user.role === 'admin' ? null : req.user.orgId;
 
     const ticket = new SupportTicket({
       subject,
@@ -18,7 +23,7 @@ router.post('/tickets', auth, async (req, res) => {
       priority: priority || 'medium',
       createdBy: req.user._id,
       createdByRole: req.user.role,
-      orgId: req.user.orgId,
+      orgId: orgId,
       messages: [{
         sender: req.user._id,
         senderRole: req.user.role,
@@ -29,10 +34,11 @@ router.post('/tickets', auth, async (req, res) => {
     await ticket.save();
     await ticket.populate('createdBy', 'name email');
     
+    console.log('Ticket created successfully:', ticket._id);
     res.json(ticket);
   } catch (error) {
     console.error('Create ticket error:', error);
-    res.status(500).json({ error: 'Failed to create ticket' });
+    res.status(500).json({ error: error.message || 'Failed to create ticket' });
   }
 });
 

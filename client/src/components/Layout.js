@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Footer from './Footer';
 
 const Layout = ({ children, title, showBack = false }) => {
   const { user, logout } = useAuth();
@@ -48,7 +49,7 @@ const Layout = ({ children, title, showBack = false }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 flex flex-col">
       <nav className="bg-indigo-600 text-white shadow-lg">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between h-16">
@@ -65,7 +66,7 @@ const Layout = ({ children, title, showBack = false }) => {
           </div>
         </div>
       </nav>
-      <main className="max-w-7xl mx-auto py-6 px-4">
+      <main className="flex-1 max-w-7xl mx-auto py-6 px-4 w-full">
         {shouldShowBack && (
           <button 
             onClick={() => navigate(-1)} 
@@ -80,6 +81,7 @@ const Layout = ({ children, title, showBack = false }) => {
         {title && <h1 className="text-3xl font-bold text-gray-900 mb-6">{title}</h1>}
         {children}
       </main>
+      <Footer />
     </div>
   );
 };

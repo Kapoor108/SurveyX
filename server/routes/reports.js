@@ -65,39 +65,25 @@ const calculateResponseScores = (response) => {
     const question = response.surveyId.questions.find(q => q._id.toString() === answer.questionId.toString());
     if (!question) return;
 
-    // Present Aspect
-    if (answer.presentCreativityOptionIndex !== undefined && answer.presentCreativityOptionIndex !== null) {
-      const option = question.presentCreativityOptions?.[answer.presentCreativityOptionIndex];
-      if (option) presentCreativityTotal += (option.marks || 0);
+    // Present Aspect - marks already calculated and stored in answer
+    if (answer.presentCreativityMarks !== undefined) {
+      presentCreativityTotal += answer.presentCreativityMarks;
     }
-    if (answer.presentMoralityOptionIndex !== undefined && answer.presentMoralityOptionIndex !== null) {
-      const option = question.presentMoralityOptions?.[answer.presentMoralityOptionIndex];
-      if (option) presentMoralityTotal += (option.marks || 0);
+    if (answer.presentMoralityMarks !== undefined) {
+      presentMoralityTotal += answer.presentMoralityMarks;
     }
 
-    // Future Aspect
-    if (answer.futureCreativityOptionIndex !== undefined && answer.futureCreativityOptionIndex !== null) {
-      const option = question.futureCreativityOptions?.[answer.futureCreativityOptionIndex];
-      if (option) futureCreativityTotal += (option.marks || 0);
+    // Future Aspect - marks already calculated and stored in answer
+    if (answer.futureCreativityMarks !== undefined) {
+      futureCreativityTotal += answer.futureCreativityMarks;
     }
-    if (answer.futureMoralityOptionIndex !== undefined && answer.futureMoralityOptionIndex !== null) {
-      const option = question.futureMoralityOptions?.[answer.futureMoralityOptionIndex];
-      if (option) futureMoralityTotal += (option.marks || 0);
+    if (answer.futureMoralityMarks !== undefined) {
+      futureMoralityTotal += answer.futureMoralityMarks;
     }
   });
 
-  // Calculate max possible score - find the highest marks in each question
-  let maxScore = 0;
-  response.surveyId.questions.forEach(q => {
-    const maxCreativity = Math.max(...(q.presentCreativityOptions?.map(o => o.marks || 0) || [0]));
-    const maxMorality = Math.max(...(q.presentMoralityOptions?.map(o => o.marks || 0) || [0]));
-    maxScore += Math.max(maxCreativity, maxMorality);
-  });
-
-  // Fallback if maxScore is 0
-  if (maxScore === 0) {
-    maxScore = response.surveyId.questions.length * 5; // Assume max 5 marks per question
-  }
+  // Calculate max possible score - 5 marks per question for each dimension
+  let maxScore = response.surveyId.questions.length * 5;
 
   // Calculate percentages
   const presentCreativityPercentage = maxScore > 0 ? ((presentCreativityTotal / maxScore) * 100).toFixed(1) : '0.0';

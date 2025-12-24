@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import Layout from '../components/Layout';
+import CEOLayout from '../components/CEOLayout';
 import api from '../utils/api';
 
 const Help = () => {
@@ -27,6 +28,7 @@ const Help = () => {
       setTickets(res.data);
     } catch (error) {
       console.error('Load tickets error:', error);
+      alert('Failed to load tickets. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -38,8 +40,10 @@ const Help = () => {
       await api.post('/support/tickets', newTicket);
       setShowCreateModal(false);
       setNewTicket({ subject: '', category: 'other', priority: 'medium', message: '' });
+      alert('Support ticket created successfully!');
       loadTickets();
     } catch (error) {
+      console.error('Create ticket error:', error);
       alert(error.response?.data?.error || 'Failed to create ticket');
     }
   };
@@ -56,6 +60,7 @@ const Help = () => {
       setReplyMessage('');
       loadTickets();
     } catch (error) {
+      console.error('Send reply error:', error);
       alert(error.response?.data?.error || 'Failed to send message');
     }
   };
@@ -80,19 +85,28 @@ const Help = () => {
     return colors[priority] || colors.medium;
   };
 
+  const LayoutComponent = user?.role === 'ceo' ? CEOLayout : Layout;
+  const contentClass = user?.role === 'ceo' ? 'p-8 max-w-7xl mx-auto' : 'max-w-6xl mx-auto';
+
   return (
-    <Layout title="Help & Support">
-      <div className="max-w-6xl mx-auto">
+    <LayoutComponent title={user?.role !== 'ceo' ? "Help & Support" : undefined}>
+      <div className={contentClass}>
         {/* Header */}
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-8 mb-6 text-white">
-          <h2 className="text-2xl font-bold mb-2">How can we help you?</h2>
-          <p className="text-indigo-100">Create a support ticket and our team will get back to you soon</p>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="mt-4 bg-white text-indigo-600 px-6 py-2 rounded-lg font-medium hover:bg-indigo-50 transition-colors"
-          >
-            + Create New Ticket
-          </button>
+        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl p-8 mb-6 text-white shadow-xl">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-3xl font-bold mb-2">How can we help you?</h2>
+              <p className="text-indigo-100">Create a support ticket and our team will get back to you soon</p>
+            </div>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="bg-white text-indigo-600 px-6 py-3 rounded-lg font-semibold hover:bg-indigo-50 transition-colors shadow-lg flex items-center gap-2">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Create New Ticket
+            </button>
+          </div>
         </div>
 
         {/* Tickets List */}
@@ -320,7 +334,7 @@ const Help = () => {
           </div>
         </div>
       )}
-    </Layout>
+    </LayoutComponent>
   );
 };
 

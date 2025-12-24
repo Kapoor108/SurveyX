@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
+import Footer from './Footer';
 
 const AdminLayout = ({ children, title }) => {
   const { user, logout } = useAuth();
@@ -115,6 +116,15 @@ const AdminLayout = ({ children, title }) => {
       ),
       label: 'Templates',
       path: '/admin/templates'
+    },
+    {
+      icon: (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+      ),
+      label: 'Support',
+      path: '/admin/support'
     }
   ];
 
@@ -216,8 +226,11 @@ const AdminLayout = ({ children, title }) => {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto bg-gray-50 p-8">
-          {children}
+        <main className="flex-1 overflow-y-auto bg-gray-50">
+          <div className="p-8">
+            {children}
+          </div>
+          <Footer />
         </main>
       </div>
 

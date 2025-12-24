@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import api from '../../utils/api';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const SurveyReport = () => {
   const { orgId, surveyId } = useParams();
@@ -26,12 +28,6 @@ const SurveyReport = () => {
     }
   };
 
-  const getBand = (percentage) => {
-    if (percentage < 40) return 'Early';
-    if (percentage < 50) return 'Emerging';
-    return 'Leading';
-  };
-
   const getBandColor = (band) => {
     if (band === 'Leading') return 'bg-green-100 text-green-700';
     if (band === 'Emerging') return 'bg-yellow-100 text-yellow-700';
@@ -51,34 +47,294 @@ const SurveyReport = () => {
   const downloadReport = () => {
     if (!report) return;
 
-    const aspectData = aspect === 'present' ? calculateAggregates('present') : calculateAggregates('future');
-    
-    const reportData = {
-      organization: report.survey.organization.name,
-      survey: report.survey.title,
-      aspect: aspect === 'present' ? 'Present Scenario' : 'Future Scenario',
-      generatedAt: new Date().toLocaleString(),
-      aggregateScores: aspectData,
-      responses: report.responses.map(r => ({
-        employee: r.employee.name,
-        department: r.employee.department,
-        creativity_percentage: r.scores[aspect]?.creativity_percentage || 0,
-        morality_percentage: r.scores[aspect]?.morality_percentage || 0,
-        creativity_band: r.scores[aspect]?.creativity_band || 'N/A',
-        morality_band: r.scores[aspect]?.morality_band || 'N/A',
-        quadrant: r.scores[aspect]?.quadrant || 'N/A'
-      }))
+    // Calculate both aspects
+    const presentData = calculateAggregates('present');
+    const futureData = calculateAggregates('future');
+
+    const doc = new jsPDF();
+    let yPos = 20;
+
+    // Helper function to render aspect section
+    const renderAspectSection = (aspectType, aspectData, isFirstSection) => {
+      const avgCreativity = parseFloat(aspectData.avgCreativityPercentage);
+      const avgMorality = parseFloat(aspectData.avgMoralityPercentage);
+      const creativityBand = getBand(avgCreativity);
+      const moralityBand = getBand(avgMorality);
+      
+      // Determine quadrant
+      let currentQuadrant = 'Extraction Engine';
+      if (avgCreativity >= 50 && avgMorality >= 50) currentQuadrant = 'Hope in Action (IGEN Zone)';
+      else if (avgCreativity >= 50 && avgMorality < 50) currentQuadrant = 'Unbounded Power';
+      else if (avgCreativity < 50 && avgMorality >= 50) currentQuadrant = 'Safe Stagnation';
+
+      // Add new page if not first section
+      if (!isFirstSection) {
+        doc.addPage();
+        yPos = 20;
+      }
+
+      // Section Title
+      const headerColor = aspectType === 'present' ? [79, 70, 229] : [147, 51, 234];
+      doc.setFillColor(headerColor[0], headerColor[1], headerColor[2]);
+      doc.rect(0, yPos - 10, 210, 15, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(16);
+      doc.setFont(undefined, 'bold');
+      doc.text(`${aspectType === 'present' ? 'PRESENT SCENARIO' : 'FUTURE SCENARIO'}`, 105, yPos, { align: 'center' });
+      
+      yPos += 15;
+      doc.setTextColor(0, 0, 0);
+
+      // Key Metrics
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.text('Key Metrics', 20, yPos);
+      yPos += 10;
+
+      const metrics = [
+        { label: 'Avg Creativity', value: `${avgCreativity}%`, bgColor: [60, 60, 60] },
+        { label: 'Avg Morality', value: `${avgMorality}%`, bgColor: [60, 60, 60] },
+        { label: 'Creativity Band', value: creativityBand, bgColor: [60, 60, 60] },
+        { label: 'Morality Band', value: moralityBand, bgColor: [60, 60, 60] }
+      ];
+
+      metrics.forEach((metric, i) => {
+        const xPos = 20 + (i % 2) * 95;
+        const boxY = yPos + Math.floor(i / 2) * 25;
+        
+        doc.setFillColor(60, 60, 60);
+        doc.roundedRect(xPos, boxY, 85, 20, 3, 3, 'F');
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.text(metric.label, xPos + 5, boxY + 7);
+        doc.setFontSize(14);
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(255, 255, 255);
+        doc.text(metric.value, xPos + 5, boxY + 15);
+        doc.setFont(undefined, 'normal');
+      });
+
+      yPos += 60;
+
+      // AI & Humanity Matrix
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text('AI & Humanity Matrix', 20, yPos);
+      yPos += 10;
+
+      const matrixSize = 80;
+      const matrixX = 60;
+      const matrixY = yPos;
+
+      const quadrants = [
+        { name: 'Safe Stagnation', x: 0, y: 0, darkColor: [255, 140, 0], lightColor: [255, 200, 150], count: aspectData.quadrantDistribution['Safe Stagnation'] || 0, quadrantName: 'Safe Stagnation' },
+        { name: 'Hope in Action', x: 1, y: 0, darkColor: [34, 139, 34], lightColor: [144, 238, 144], count: aspectData.quadrantDistribution['Hope in Action (IGEN Zone)'] || 0, quadrantName: 'Hope in Action (IGEN Zone)' },
+        { name: 'Extraction Engine', x: 0, y: 1, darkColor: [220, 20, 60], lightColor: [255, 182, 193], count: aspectData.quadrantDistribution['Extraction Engine'] || 0, quadrantName: 'Extraction Engine' },
+        { name: 'Unbounded Power', x: 1, y: 1, darkColor: [30, 144, 255], lightColor: [173, 216, 230], count: aspectData.quadrantDistribution['Unbounded Power'] || 0, quadrantName: 'Unbounded Power' }
+      ];
+
+      quadrants.forEach(q => {
+        const isCurrentQuadrant = q.quadrantName === currentQuadrant;
+        
+        const qX = matrixX + q.x * matrixSize / 2;
+        const qY = matrixY + q.y * matrixSize / 2;
+        const qSize = matrixSize / 2;
+        
+        const gradientSteps = 20;
+        for (let i = 0; i < gradientSteps; i++) {
+          const ratio = i / gradientSteps;
+          const r = Math.round(q.darkColor[0] + (q.lightColor[0] - q.darkColor[0]) * ratio);
+          const g = Math.round(q.darkColor[1] + (q.lightColor[1] - q.darkColor[1]) * ratio);
+          const b = Math.round(q.darkColor[2] + (q.lightColor[2] - q.darkColor[2]) * ratio);
+          
+          const opacity = isCurrentQuadrant ? 1 : 0.3;
+          doc.setFillColor(r, g, b, opacity);
+          doc.rect(qX, qY + (i * qSize / gradientSteps), qSize, qSize / gradientSteps + 0.5, 'F');
+        }
+        
+        if (isCurrentQuadrant) {
+          doc.setDrawColor(q.darkColor[0], q.darkColor[1], q.darkColor[2]);
+          doc.setLineWidth(3);
+          doc.rect(qX, qY, qSize, qSize);
+          doc.setLineWidth(0.1);
+        } else {
+          doc.setDrawColor(100, 100, 100);
+          doc.setLineWidth(0.5);
+          doc.rect(qX, qY, qSize, qSize);
+          doc.setLineWidth(0.1);
+        }
+        
+        doc.setFontSize(8);
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(isCurrentQuadrant ? 255 : 80, isCurrentQuadrant ? 255 : 80, isCurrentQuadrant ? 255 : 80);
+        const textX = qX + qSize / 2;
+        const textY = qY + qSize / 2 - 5;
+        doc.text(q.name, textX, textY, { align: 'center', maxWidth: qSize - 5 });
+        doc.setFontSize(12);
+        doc.text(`${q.count}`, textX, textY + 8, { align: 'center' });
+        
+        if (isCurrentQuadrant) {
+          doc.setFontSize(7);
+          doc.setTextColor(255, 255, 255);
+          doc.setFillColor(q.darkColor[0], q.darkColor[1], q.darkColor[2]);
+          doc.roundedRect(textX - 15, textY + 15, 30, 6, 2, 2, 'F');
+          doc.text('YOU ARE HERE', textX, textY + 19, { align: 'center' });
+        }
+        
+        doc.setFont(undefined, 'normal');
+      });
+
+      doc.setFontSize(9);
+      doc.setTextColor(100, 100, 100);
+      doc.text('Creativity', matrixX - 15, matrixY + matrixSize / 2, { angle: 90 });
+      doc.text('Morality', matrixX + matrixSize / 2, matrixY + matrixSize + 8, { align: 'center' });
+
+      yPos += matrixSize + 20;
+
+      // Overall Assessment
+      if (yPos > 220) {
+        doc.addPage();
+        yPos = 20;
+      }
+
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text('Overall Assessment', 20, yPos);
+      yPos += 8;
+
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'normal');
+      let assessment = '';
+      
+      if (currentQuadrant === 'Hope in Action (IGEN Zone)') {
+        assessment = 'Excellent! Your organization demonstrates strong performance in both creativity and morality. ' +
+          'You are in the ideal IGEN Zone, showing trusted innovation and responsible scaling practices. ' +
+          'Continue to maintain these high standards while exploring new opportunities for growth.';
+      } else if (currentQuadrant === 'Unbounded Power') {
+        assessment = 'Your organization shows high creativity but needs improvement in morality. ' +
+          'While innovation is strong, there are concerns about ethical considerations and responsible practices. ' +
+          'Focus on establishing moral boundaries, accountability frameworks, and stakeholder engagement.';
+      } else if (currentQuadrant === 'Safe Stagnation') {
+        assessment = 'Your organization demonstrates good moral practices but lacks creative innovation. ' +
+          'While ethical considerations are strong, there is room for improvement in innovative thinking. ' +
+          'Encourage experimentation, creative problem-solving, and calculated risk-taking.';
+      } else {
+        assessment = 'Critical attention needed. Both creativity and morality scores are below optimal levels. ' +
+          'This indicates significant risks in both innovation capacity and ethical practices. ' +
+          'Immediate action is required to improve both dimensions through training, policy changes, and cultural transformation.';
+      }
+
+      const splitAssessment = doc.splitTextToSize(assessment, 170);
+      doc.text(splitAssessment, 20, yPos);
+      yPos += splitAssessment.length * 5 + 10;
+
+      // Individual Scores Table
+      doc.addPage();
+      yPos = 20;
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.text(`Individual Employee Scores - ${aspectType === 'present' ? 'Present' : 'Future'}`, 20, yPos);
+      yPos += 10;
+
+      const tableData = report.responses.map(r => {
+        const scores = r.scores[aspectType];
+        return [
+          r.employee.name,
+          r.employee.department,
+          `${scores?.creativity_percentage || 0}%`,
+          `${scores?.morality_percentage || 0}%`,
+          scores?.creativity_band || 'N/A',
+          scores?.morality_band || 'N/A',
+          scores?.quadrant || 'N/A'
+        ];
+      });
+
+      autoTable(doc, {
+        startY: yPos,
+        head: [['Employee', 'Department', 'Creativity %', 'Morality %', 'C Band', 'M Band', 'Quadrant']],
+        body: tableData,
+        theme: 'grid',
+        headStyles: { fillColor: aspectType === 'present' ? [79, 70, 229] : [147, 51, 234], textColor: 255, fontStyle: 'bold' },
+        styles: { fontSize: 8, cellPadding: 3 },
+        columnStyles: {
+          0: { cellWidth: 35 },
+          1: { cellWidth: 30 },
+          2: { cellWidth: 20, halign: 'center' },
+          3: { cellWidth: 20, halign: 'center' },
+          4: { cellWidth: 20, halign: 'center' },
+          5: { cellWidth: 20, halign: 'center' },
+          6: { cellWidth: 35 }
+        }
+      });
     };
 
-    const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${report.survey.organization.name}_${report.survey.title}_${aspect}_report.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    // Title Page
+    doc.setFillColor(79, 70, 229);
+    doc.rect(0, 0, 210, 40, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(24);
+    doc.setFont(undefined, 'bold');
+    doc.text('AI & Humanity Survey Report', 105, 20, { align: 'center' });
+    doc.setFontSize(14);
+    doc.setFont(undefined, 'normal');
+    doc.text(report.survey.organization.name, 105, 30, { align: 'center' });
+
+    yPos = 50;
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(16);
+    doc.setFont(undefined, 'bold');
+    doc.text(report.survey.title, 20, yPos);
+    
+    yPos += 10;
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 20, yPos);
+    
+    yPos += 5;
+    doc.text(`Total Responses: ${report.totalResponses}`, 20, yPos);
+    doc.text(`Questions: ${report.survey.questionCount}`, 120, yPos);
+
+    // Executive Summary
+    yPos += 15;
+    doc.setFontSize(14);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('Executive Summary', 20, yPos);
+    
+    yPos += 8;
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    const summaryText = `This comprehensive report analyzes ${report.totalResponses} survey responses from ${report.survey.organization.name} ` +
+      `to assess the organization's AI readiness across creativity and morality dimensions for both present and future scenarios. ` +
+      `The report provides detailed insights into current capabilities and future aspirations, helping identify gaps and opportunities for growth.`;
+    
+    const splitSummary = doc.splitTextToSize(summaryText, 170);
+    doc.text(splitSummary, 20, yPos);
+    yPos += splitSummary.length * 5 + 10;
+
+    // Render Present Scenario
+    doc.addPage();
+    renderAspectSection('present', presentData, true);
+
+    // Render Future Scenario
+    renderAspectSection('future', futureData, false);
+
+    // Footer on all pages
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text(`Page ${i} of ${pageCount}`, 105, 290, { align: 'center' });
+      doc.text(`${report.survey.organization.name} - Confidential`, 20, 290);
+    }
+
+    // Save PDF
+    const fileName = `${report.survey.organization.name}_${report.survey.title}_Complete_Report.pdf`;
+    doc.save(fileName);
   };
 
   const calculateAggregates = (aspectType) => {
@@ -479,6 +735,13 @@ const SurveyReport = () => {
       </div>
     </AdminLayout>
   );
+};
+
+// Helper function for band calculation
+const getBand = (percentage) => {
+  if (percentage < 40) return 'Early';
+  if (percentage < 50) return 'Emerging';
+  return 'Leading';
 };
 
 export default SurveyReport;

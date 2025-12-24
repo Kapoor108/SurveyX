@@ -13,6 +13,7 @@ import AdminOrgDetails from './pages/admin/OrgDetails';
 import AdminTemplates from './pages/admin/Templates';
 import AdminUserDetails from './pages/admin/UserDetails';
 import AdminReports from './pages/admin/Reports';
+import AdminSupportTickets from './pages/admin/SupportTickets';
 import SurveyReport from './pages/admin/SurveyReport';
 import CEODashboard from './pages/ceo/Dashboard';
 import CEODepartments from './pages/ceo/Departments';
@@ -21,6 +22,19 @@ import CEOSurveys from './pages/ceo/Surveys';
 import CEOSurveyAnalytics from './pages/ceo/SurveyAnalytics';
 import UserDashboard from './pages/user/Dashboard';
 import UserSurvey from './pages/user/Survey';
+// Footer Pages
+import Pricing from './pages/Pricing';
+import Features from './pages/Features';
+import About from './pages/About';
+import Contact from './pages/Contact';
+import Careers from './pages/Careers';
+import Blog from './pages/Blog';
+import Integrations from './pages/Integrations';
+import API from './pages/API';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
+import CookiePolicy from './pages/CookiePolicy';
+import GDPR from './pages/GDPR';
 
 // Protected Route with Role-Based Access
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -114,6 +128,11 @@ function App() {
               <SurveyReport />
             </ProtectedRoute>
           } />
+          <Route path="/admin/support" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminSupportTickets />
+            </ProtectedRoute>
+          } />
           
           {/* CEO Routes - Only CEO can access */}
           <Route path="/ceo" element={
@@ -159,8 +178,22 @@ function App() {
             </ProtectedRoute>
           } />
           
-          {/* Default redirect */}
+          {/* Public Pages */}
           <Route path="/" element={<LandingPage />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/features" element={<Features />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/careers" element={<Careers />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/integrations" element={<Integrations />} />
+          <Route path="/api" element={<API />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/cookies" element={<CookiePolicy />} />
+          <Route path="/gdpr" element={<GDPR />} />
+          
+          {/* Default redirect */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

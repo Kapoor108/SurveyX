@@ -493,10 +493,10 @@ const LandingPage = () => {
             <div>
               <h4 className="text-white font-semibold mb-4">Product</h4>
               <ul className="space-y-3">
-                <li><button onClick={() => scrollToSection('features')} className="hover:text-white transition-colors">Features</button></li>
-                <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Integrations</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">API</a></li>
+                <li><Link to="/features" className="hover:text-white transition-colors">Features</Link></li>
+                <li><Link to="/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
+                <li><Link to="/integrations" className="hover:text-white transition-colors">Integrations</Link></li>
+                <li><Link to="/api" className="hover:text-white transition-colors">API</Link></li>
               </ul>
             </div>
 
@@ -504,10 +504,10 @@ const LandingPage = () => {
             <div>
               <h4 className="text-white font-semibold mb-4">Company</h4>
               <ul className="space-y-3">
-                <li><button onClick={() => scrollToSection('about')} className="hover:text-white transition-colors">About Us</button></li>
-                <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-                <li><button onClick={() => scrollToSection('contact')} className="hover:text-white transition-colors">Contact</button></li>
+                <li><Link to="/about" className="hover:text-white transition-colors">About Us</Link></li>
+                <li><Link to="/careers" className="hover:text-white transition-colors">Careers</Link></li>
+                <li><Link to="/blog" className="hover:text-white transition-colors">Blog</Link></li>
+                <li><Link to="/contact" className="hover:text-white transition-colors">Contact</Link></li>
               </ul>
             </div>
 
@@ -515,10 +515,10 @@ const LandingPage = () => {
             <div>
               <h4 className="text-white font-semibold mb-4">Legal</h4>
               <ul className="space-y-3">
-                <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Cookie Policy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">GDPR</a></li>
+                <li><Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+                <li><Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
+                <li><Link to="/cookies" className="hover:text-white transition-colors">Cookie Policy</Link></li>
+                <li><Link to="/gdpr" className="hover:text-white transition-colors">GDPR</Link></li>
               </ul>
             </div>
           </div>
@@ -526,12 +526,12 @@ const LandingPage = () => {
           {/* Bottom Footer */}
           <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm">
-              © 2024 SurveyPulse. All rights reserved.
+              © 2025 SurveyPulse. All rights reserved.
             </p>
             <div className="flex gap-6 mt-4 md:mt-0">
-              <a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">Privacy</a>
-              <a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">Terms</a>
-              <a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">Cookies</a>
+              <Link to="/privacy" className="text-gray-400 hover:text-white text-sm transition-colors">Privacy</Link>
+              <Link to="/terms" className="text-gray-400 hover:text-white text-sm transition-colors">Terms</Link>
+              <Link to="/cookies" className="text-gray-400 hover:text-white text-sm transition-colors">Cookies</Link>
             </div>
           </div>
         </div>
