@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 import Footer from './Footer';
+import CXOLogo from './CXOLogo';
 
 const AdminLayout = ({ children, title }) => {
   const { user, logout } = useAuth();
@@ -134,10 +135,10 @@ const AdminLayout = ({ children, title }) => {
       <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-gradient-to-b from-indigo-800 to-indigo-900 text-white transition-all duration-300 flex flex-col shadow-xl`}>
         {/* Logo */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-indigo-700">
-          {sidebarOpen && (
-            <span className="text-xl font-bold bg-gradient-to-r from-white to-indigo-200 bg-clip-text text-transparent">
-              SurveyPulse
-            </span>
+          {sidebarOpen ? (
+            <CXOLogo size="sm" showText={true} />
+          ) : (
+            <CXOLogo size="sm" showText={false} />
           )}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}

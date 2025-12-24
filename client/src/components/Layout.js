@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Footer from './Footer';
+import CXOLogo from './CXOLogo';
 
 const Layout = ({ children, title, showBack = false }) => {
   const { user, logout } = useAuth();
@@ -54,7 +55,7 @@ const Layout = ({ children, title, showBack = false }) => {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between h-16">
             <div className="flex items-center space-x-8">
-              <span className="text-xl font-bold">Survey App</span>
+              <CXOLogo size="sm" showText={true} />
               {navLinks[user?.role]?.map(link => (
                 <Link key={link.to} to={link.to} className="hover:text-indigo-200">{link.label}</Link>
               ))}

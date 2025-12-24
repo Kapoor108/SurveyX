@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import AIChatbot from './components/AIChatbot';
 import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -196,6 +197,9 @@ function App() {
           {/* Default redirect */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        
+        {/* Global AI Chatbot - Available on all pages */}
+        <AIChatbot />
       </BrowserRouter>
     </AuthProvider>
   );

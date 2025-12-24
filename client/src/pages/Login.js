@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
+import CXOLogo from '../components/CXOLogo';
 
 const Login = () => {
   const [step, setStep] = useState('email'); // email, otp
@@ -61,8 +62,13 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-indigo-900 to-purple-900">
+      <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md">
+        {/* Logo */}
+        <div className="flex justify-center mb-6">
+          <CXOLogo size="lg" showText={true} />
+        </div>
+        
         {/* Back to Home Button */}
         <button 
           onClick={() => navigate('/')} 

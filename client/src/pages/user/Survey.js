@@ -27,7 +27,12 @@ const UserSurvey = () => {
     });
   }, [id]);
 
-  const handleAnswer = (questionId, aspect, optionIndex) => {
+  const handleAnswer = (questionId, aspect, optionIndex, event) => {
+    // Prevent any default behavior that might cause scrolling
+    if (event) {
+      event.preventDefault();
+    }
+    
     setAnswers({
       ...answers,
       [questionId]: {
@@ -181,21 +186,18 @@ const UserSurvey = () => {
                     // NEW STRUCTURE
                     <div className="space-y-3">
                       {q.presentOptions.map((opt, i) => (
-                        <label 
+                        <div
                           key={i} 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleAnswer(q._id, 'presentOption', i, e);
+                          }}
                           className={`flex items-center gap-3 px-5 py-4 rounded-xl border-2 cursor-pointer transition-all shadow-sm hover:shadow-md ${
                             answers[q._id]?.presentOption === i 
                               ? 'border-blue-500 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-900 shadow-lg scale-105' 
                               : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50'
                           }`}
                         >
-                          <input 
-                            type="radio" 
-                            name={`${q._id}-present`}
-                            checked={answers[q._id]?.presentOption === i}
-                            onChange={() => handleAnswer(q._id, 'presentOption', i)}
-                            className="sr-only"
-                          />
                           <span className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
                             answers[q._id]?.presentOption === i ? 'border-blue-600 bg-blue-600' : 'border-gray-400'
                           }`}>
@@ -206,7 +208,7 @@ const UserSurvey = () => {
                             )}
                           </span>
                           <span className="text-sm font-medium flex-1">{opt.text}</span>
-                        </label>
+                        </div>
                       ))}
                     </div>
                   ) : (
@@ -232,21 +234,18 @@ const UserSurvey = () => {
                     // NEW STRUCTURE
                     <div className="space-y-3">
                       {q.futureOptions.map((opt, i) => (
-                        <label 
+                        <div
                           key={i} 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleAnswer(q._id, 'futureOption', i, e);
+                          }}
                           className={`flex items-center gap-3 px-5 py-4 rounded-xl border-2 cursor-pointer transition-all shadow-sm hover:shadow-md ${
                             answers[q._id]?.futureOption === i 
                               ? 'border-purple-500 bg-gradient-to-r from-purple-50 to-purple-100 text-purple-900 shadow-lg scale-105' 
                               : 'border-gray-200 bg-white hover:border-purple-300 hover:bg-purple-50'
                           }`}
                         >
-                          <input 
-                            type="radio" 
-                            name={`${q._id}-future`}
-                            checked={answers[q._id]?.futureOption === i}
-                            onChange={() => handleAnswer(q._id, 'futureOption', i)}
-                            className="sr-only"
-                          />
                           <span className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
                             answers[q._id]?.futureOption === i ? 'border-purple-600 bg-purple-600' : 'border-gray-400'
                           }`}>
@@ -257,7 +256,7 @@ const UserSurvey = () => {
                             )}
                           </span>
                           <span className="text-sm font-medium flex-1">{opt.text}</span>
-                        </label>
+                        </div>
                       ))}
                     </div>
                   ) : (

@@ -58,6 +58,7 @@ app.use('/api/surveys', require('./routes/surveys'));
 app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/support', require('./routes/support'));
 app.use('/api/reports', require('./routes/reports'));
+app.use('/api/chatbot', require('./routes/chatbot'));
 
 // Health check
 app.get('/api/health', (req, res) => {
